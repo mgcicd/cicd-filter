@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+	"strings"
 	"time"
 
 	v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
@@ -35,9 +36,18 @@ func (a AuthService) Check(ctx context.Context, req *v3.CheckRequest) (*v3.Check
 		}
 	}()
 
-	headers := req.Attributes.Request.Http.Headers
+	query := strings.Split(req.Attributes.Request.Http.Path, "?")
 
-	fmt.Println(headers)
+	fmt.Println(query)
+
+	if len(query) > 1 && strings.Contains(strings.ToLower(query[1]), "token") {
+
+		newHeaders := map[string]string{"name": "luckQuery"}
+		fmt.Println("query string, 验证通过")
+		return OkResponse(&newHeaders, &newHeaders)
+	}
+
+	headers := req.Attributes.Request.Http.Headers
 
 	_, ok := headers["token"]
 
@@ -51,8 +61,8 @@ func (a AuthService) Check(ctx context.Context, req *v3.CheckRequest) (*v3.Check
 
 	}
 
-	newHeaders := map[string]string{"name": "luck"}
+	newHeaders := map[string]string{"name": "luckHeader"}
 
-	fmt.Println("登录成功")
+	fmt.Println("Header, 验证通过")
 	return OkResponse(&newHeaders, &headers)
 }
